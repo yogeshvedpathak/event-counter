@@ -48,9 +48,8 @@ public class EventCounter implements Runnable {
 	private int startIndex = 0;
 	private volatile int currentIndex = 0;
 	private List<AtomicInteger> counters = new ArrayList<AtomicInteger>();
-	private volatile List<AtomicBoolean> resetCounters = new ArrayList<AtomicBoolean>();
 	private ScheduledFuture<?> tiktask;
-	
+	private AtomicBoolean firstRollover = new AtomicBoolean(false); 
 	/**
 	 * Default constructor with window size set to 5 minutes
 	 */
@@ -71,9 +70,6 @@ public class EventCounter implements Runnable {
 		this.window = window;		
 		for(int i=0; i<= window; i++) {
 			counters.add(new AtomicInteger(0));
-		}
-		for(int i=0; i<= window; i++) {
-			resetCounters.add(new AtomicBoolean(false));
 		}
 	}
 	
@@ -99,12 +95,7 @@ public class EventCounter implements Runnable {
 	 */
 	public void logEvent() {
 		int cIndex = currentIndex;
-		if(resetCounters.get(cIndex).compareAndSet(true, false)) {
-			counters.get(cIndex).set(1);
-		}
-		else {
-			counters.get(cIndex).incrementAndGet();
-		}
+		counters.get(cIndex).incrementAndGet();
 	}
 	
 	/**
@@ -117,21 +108,11 @@ public class EventCounter implements Runnable {
 		if(since > 0) {
 			int realSince = Math.min(since, window);
 			int cIndex = currentIndex;
-			int past  = cIndex - realSince;
-			int start = past;
-			int end = cIndex;
-			if(past < 0 ) {
-				start = 0;
-				for(int i=realSince; i > realSince + past; i--) {
-					if(!resetCounters.get(i).get()) {
-						count += counters.get(i).get();
-					}
-				}
-			}
-			for(int i=start; i <= end; i++) {
-				if(!resetCounters.get(i).get()) {
-					count += counters.get(i).get();
-				}
+			int index = 0;
+			for(int i = 0; i < realSince ; i++) {
+				index = (cIndex - i) % window;
+				index = index < 0 ? window + index : index;
+				count += counters.get(index).get();
 			}
 		}
 		return count;
@@ -141,15 +122,12 @@ public class EventCounter implements Runnable {
 	 * This method is used to maintain internal timer
 	 */
 	public final void run() {
-		int newIndex = (int)(System.currentTimeMillis() / 1000) % window;
-		if(newIndex == startIndex) {
-			System.out.println("Resetting current index");
-			List<AtomicBoolean> newResetCounters = new ArrayList<AtomicBoolean>();
-			for(int i=0; i<= window; i++) {
-				newResetCounters.add(new AtomicBoolean(true));
-			}
-			resetCounters = newResetCounters;
+		currentIndex = (int)(System.currentTimeMillis() / 1000) % window;;
+		if(currentIndex == startIndex) {
+			firstRollover.compareAndSet(false, true);
 		}
-		
+		if(firstRollover.get()) {
+			counters.get(currentIndex).set(0);
+		}		
 	}
 }

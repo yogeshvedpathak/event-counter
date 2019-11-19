@@ -28,15 +28,28 @@ public class EventCounterTest {
 		Assert.assertEquals(60, counter.countEvents(30));
 		Thread.sleep(25000);
 		//Past the 30 seconds of total window size
-		Assert.assertEquals(0, counter.countEvents(900));
-		for(int i=0; i<50; i++) {
+		Assert.assertEquals(30, counter.countEvents(900));
+		for(int i=0; i<5; i++) {
 			counter.logEvent();
-			Thread.sleep(100);
+			Thread.sleep(500);
 		}
-		Assert.assertEquals(50, counter.countEvents(5));
+		Assert.assertEquals(5, counter.countEvents(3));
 		
 		Assert.assertEquals(0, counter.countEvents(0));
 		Assert.assertEquals(0, counter.countEvents(-2));
+		counter.close();
+	}
+	
+	@Test
+	public void testWindowRollover() throws InterruptedException {
+		EventCounter counter = new EventCounter(10);
+		counter.open();
+		for(int i=1; i<25; i++) {
+			counter.logEvent();
+			Thread.sleep(1000);
+		}
+		Thread.sleep(11000);
+		Assert.assertEquals(0, counter.countEvents(60));
 		counter.close();
 	}
 	

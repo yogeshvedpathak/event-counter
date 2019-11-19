@@ -9,13 +9,13 @@ This count does maintain a state internally with background threads. Hence it ne
 
 ## Example:
 
-'''
+<pre>
 	EventCounter counter = new EventCounter(); //Creates counter with 5 minute window. 
 	counter.open(); // Initialize counter
 	counter.logEvent(); // Signal event happened now
 	counter.countEvent(30); // Count events happened in last 30 seconds 
 	counter.close(); // Free resources
-'''
+</pre>
 
 # Requirements 
 - git version 2.15.0
