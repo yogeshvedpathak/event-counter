@@ -48,7 +48,7 @@ public class EventCounter implements Runnable {
 	private int startIndex = 0;
 	private volatile int currentIndex = 0;
 	private List<AtomicInteger> counters = new ArrayList<AtomicInteger>();
-	private ScheduledFuture<?> tiktask;
+	private ScheduledFuture<?> tikTask;
 	private AtomicBoolean firstRollover = new AtomicBoolean(false); 
 	/**
 	 * Default constructor with window size set to 5 minutes
@@ -79,7 +79,7 @@ public class EventCounter implements Runnable {
 	public void open() {
 		startIndex = (int)(System.currentTimeMillis() / 1000) % window;
 		currentIndex = startIndex;
-		tiktask = scheduler.scheduleAtFixedRate(this, 1, 1, TimeUnit.SECONDS);
+		tikTask = scheduler.scheduleAtFixedRate(this, 1, 1, TimeUnit.SECONDS);
 	}
 	/**
 	 * Frees resources used by this counter
@@ -87,7 +87,7 @@ public class EventCounter implements Runnable {
 	public void close() {
 		startIndex = -1;
 		currentIndex = -1;
-		tiktask.cancel(true);
+		tikTask.cancel(true);
 	}
 	/*
 	 * Signals the counter that event has happened. The counter uses it's internal timer to record the time 

@@ -58,7 +58,7 @@ public class EventCounterTest {
 		final EventCounter counter = new EventCounter(30);
 		try {
 			counter.logEvent();
-			Assert.fail("RTE exoected");
+			Assert.fail("RTE expected");
 		}catch(RuntimeException e) {
 			//Expected
 		}
@@ -69,7 +69,7 @@ public class EventCounterTest {
 		counter.close();
 		try {
 			counter.logEvent();
-			Assert.fail("RTE exoected");
+			Assert.fail("RTE expected");
 		}catch(RuntimeException e) {
 			//Expected
 		}
